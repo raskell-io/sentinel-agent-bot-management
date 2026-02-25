@@ -270,10 +270,8 @@ Register the bot management agent in your Zentinel proxy configuration:
 agents {
     agent "bot-management" {
         type "custom"
-        transport "unix_socket" {
-            path "/var/run/zentinel/bot-management.sock"
-        }
-        events ["request_headers"]
+        unix-socket "/var/run/zentinel/bot-management.sock"
+        events "request_headers"
         timeout-ms 50
         failure-mode "open"
     }
@@ -283,7 +281,7 @@ routes {
     route "web" {
         matches { path-prefix "/" }
         upstream "backend"
-        agents ["bot-management"]
+        agents "bot-management"
     }
 }
 ```
@@ -294,10 +292,8 @@ For gRPC transport:
 agents {
     agent "bot-management" {
         type "custom"
-        transport "grpc" {
-            address "127.0.0.1:50052"
-        }
-        events ["request_headers"]
+        grpc "127.0.0.1:50052"
+        events "request_headers"
         timeout-ms 50
         failure-mode "open"
     }
