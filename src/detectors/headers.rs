@@ -12,13 +12,8 @@ use std::collections::HashSet;
 use std::sync::LazyLock;
 
 /// Headers that real browsers typically send.
-static BROWSER_HEADERS: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
-    HashSet::from([
-        "accept",
-        "accept-language",
-        "accept-encoding",
-    ])
-});
+static BROWSER_HEADERS: LazyLock<HashSet<&'static str>> =
+    LazyLock::new(|| HashSet::from(["accept", "accept-language", "accept-encoding"]));
 
 /// Headers that indicate automation tools.
 static AUTOMATION_HEADERS: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
@@ -28,17 +23,29 @@ static AUTOMATION_HEADERS: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
         "x-playwright",
         "x-automation",
         "x-headless",
-        "x-requested-with",  // Sometimes set by automation
+        "x-requested-with", // Sometimes set by automation
     ])
 });
 
 /// Suspicious header patterns.
 static SUSPICIOUS_PATTERNS: LazyLock<Vec<(Regex, &'static str)>> = LazyLock::new(|| {
     vec![
-        (Regex::new(r"(?i)^selenium").expect("valid regex: selenium"), "selenium_marker"),
-        (Regex::new(r"(?i)^puppeteer").expect("valid regex: puppeteer"), "puppeteer_marker"),
-        (Regex::new(r"(?i)^playwright").expect("valid regex: playwright"), "playwright_marker"),
-        (Regex::new(r"(?i)headless").expect("valid regex: headless"), "headless_marker"),
+        (
+            Regex::new(r"(?i)^selenium").expect("valid regex: selenium"),
+            "selenium_marker",
+        ),
+        (
+            Regex::new(r"(?i)^puppeteer").expect("valid regex: puppeteer"),
+            "puppeteer_marker",
+        ),
+        (
+            Regex::new(r"(?i)^playwright").expect("valid regex: playwright"),
+            "playwright_marker",
+        ),
+        (
+            Regex::new(r"(?i)headless").expect("valid regex: headless"),
+            "headless_marker",
+        ),
     ]
 });
 
@@ -89,7 +96,8 @@ impl Detector for HeaderAnalyzer {
         for header in &self.automation_headers {
             if ctx.headers.contains_key(*header) {
                 score = score.saturating_add(30);
-                result = result.with_reason(format!("automation_header_{}", header.replace('-', "_")));
+                result =
+                    result.with_reason(format!("automation_header_{}", header.replace('-', "_")));
             }
         }
 
@@ -154,7 +162,9 @@ fn extract_chrome_version(ua: &str) -> Option<u32> {
     let chrome_idx = ua.find("Chrome/")?;
     let version_start = chrome_idx + 7;
     let rest = &ua[version_start..];
-    let version_end = rest.find(|c: char| !c.is_ascii_digit()).unwrap_or(rest.len());
+    let version_end = rest
+        .find(|c: char| !c.is_ascii_digit())
+        .unwrap_or(rest.len());
     rest[..version_end].parse().ok()
 }
 
@@ -189,15 +199,16 @@ mod tests {
             ("accept-language", "en-US,en;q=0.9"),
             ("accept-encoding", "gzip, deflate, br"),
             ("user-agent", "Mozilla/5.0 Chrome/120"),
-            ("sec-ch-ua", "\"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\""),
+            (
+                "sec-ch-ua",
+                "\"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"",
+            ),
         ]);
         let result = analyzer.analyze(&ctx).await;
         assert!(result.score < 20, "Browser headers should have low score");
 
         // Missing headers - higher score
-        let ctx = make_ctx(vec![
-            ("user-agent", "curl/7.88.0"),
-        ]);
+        let ctx = make_ctx(vec![("user-agent", "curl/7.88.0")]);
         let result = analyzer.analyze(&ctx).await;
         assert!(result.score >= 30, "Missing headers should increase score");
     }
@@ -213,13 +224,19 @@ mod tests {
             ("accept-encoding", "gzip"),
         ]);
         let result = analyzer.analyze(&ctx).await;
-        assert!(result.score >= 30, "Automation headers should increase score");
+        assert!(
+            result.score >= 30,
+            "Automation headers should increase score"
+        );
         assert!(result.reasons.iter().any(|r| r.contains("automation")));
     }
 
     #[tokio::test]
     async fn test_chrome_version_extraction() {
-        assert_eq!(extract_chrome_version("Mozilla/5.0 Chrome/120.0.0.0"), Some(120));
+        assert_eq!(
+            extract_chrome_version("Mozilla/5.0 Chrome/120.0.0.0"),
+            Some(120)
+        );
         assert_eq!(extract_chrome_version("Mozilla/5.0 Chrome/89"), Some(89));
         assert_eq!(extract_chrome_version("Mozilla/5.0 Firefox/120"), None);
     }

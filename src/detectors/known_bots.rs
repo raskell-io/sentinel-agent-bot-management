@@ -114,7 +114,8 @@ impl KnownBotDatabase {
         let bad_patterns = if bad_patterns_path.exists() {
             let content = std::fs::read_to_string(bad_patterns_path)?;
             let patterns: Vec<BadPatternDef> = serde_json::from_str(&content)?;
-            patterns.into_iter()
+            patterns
+                .into_iter()
                 .filter_map(|p| Self::compile_bad_pattern(p).ok())
                 .collect()
         } else {
@@ -122,7 +123,8 @@ impl KnownBotDatabase {
         };
 
         // Create DNS resolver
-        let resolver = TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());
+        let resolver =
+            TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());
 
         // Create cache
         let verification_cache = Cache::builder()
@@ -141,7 +143,8 @@ impl KnownBotDatabase {
 
     /// Create with default databases.
     pub async fn with_defaults(verify_identity: bool) -> anyhow::Result<Self> {
-        let resolver = TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());
+        let resolver =
+            TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());
 
         let verification_cache = Cache::builder()
             .max_capacity(10_000)
@@ -158,12 +161,14 @@ impl KnownBotDatabase {
     }
 
     fn compile_bot(bot: KnownBot) -> anyhow::Result<CompiledBot> {
-        let ua_patterns: Vec<Regex> = bot.ua_patterns
+        let ua_patterns: Vec<Regex> = bot
+            .ua_patterns
             .iter()
             .filter_map(|p| Regex::new(&format!("(?i){}", regex::escape(p))).ok())
             .collect();
 
-        let ip_ranges: Vec<IpNet> = bot.ip_ranges
+        let ip_ranges: Vec<IpNet> = bot
+            .ip_ranges
             .iter()
             .filter_map(|r| r.parse().ok())
             .collect();
@@ -202,17 +207,28 @@ impl KnownBotDatabase {
                 category: BotCategory::SearchEngine,
                 ua_patterns: vec![
                     Regex::new(r"(?i)googlebot").expect("valid regex: googlebot"),
-                    Regex::new(r"(?i)google-inspectiontool").expect("valid regex: google-inspectiontool"),
+                    Regex::new(r"(?i)google-inspectiontool")
+                        .expect("valid regex: google-inspectiontool"),
                     Regex::new(r"(?i)googleother").expect("valid regex: googleother"),
                 ],
                 ip_ranges: vec![
-                    "66.249.64.0/19".parse().expect("valid CIDR: 66.249.64.0/19"),
-                    "64.233.160.0/19".parse().expect("valid CIDR: 64.233.160.0/19"),
+                    "66.249.64.0/19"
+                        .parse()
+                        .expect("valid CIDR: 66.249.64.0/19"),
+                    "64.233.160.0/19"
+                        .parse()
+                        .expect("valid CIDR: 64.233.160.0/19"),
                     "66.102.0.0/20".parse().expect("valid CIDR: 66.102.0.0/20"),
-                    "72.14.192.0/18".parse().expect("valid CIDR: 72.14.192.0/18"),
+                    "72.14.192.0/18"
+                        .parse()
+                        .expect("valid CIDR: 72.14.192.0/18"),
                     "74.125.0.0/16".parse().expect("valid CIDR: 74.125.0.0/16"),
-                    "209.85.128.0/17".parse().expect("valid CIDR: 209.85.128.0/17"),
-                    "216.239.32.0/19".parse().expect("valid CIDR: 216.239.32.0/19"),
+                    "209.85.128.0/17"
+                        .parse()
+                        .expect("valid CIDR: 209.85.128.0/17"),
+                    "216.239.32.0/19"
+                        .parse()
+                        .expect("valid CIDR: 216.239.32.0/19"),
                 ],
                 verify_dns: Some(".googlebot.com".to_string()),
                 is_good: true,
@@ -225,7 +241,9 @@ impl KnownBotDatabase {
                     Regex::new(r"(?i)msnbot").expect("valid regex: msnbot"),
                 ],
                 ip_ranges: vec![
-                    "40.77.167.0/24".parse().expect("valid CIDR: 40.77.167.0/24"),
+                    "40.77.167.0/24"
+                        .parse()
+                        .expect("valid CIDR: 40.77.167.0/24"),
                     "207.46.0.0/16".parse().expect("valid CIDR: 207.46.0.0/16"),
                     "65.52.0.0/14".parse().expect("valid CIDR: 65.52.0.0/14"),
                     "157.55.0.0/16".parse().expect("valid CIDR: 157.55.0.0/16"),
@@ -237,15 +255,23 @@ impl KnownBotDatabase {
             CompiledBot {
                 name: "DuckDuckBot".to_string(),
                 category: BotCategory::SearchEngine,
-                ua_patterns: vec![
-                    Regex::new(r"(?i)duckduckbot").expect("valid regex: duckduckbot"),
-                ],
+                ua_patterns: vec![Regex::new(r"(?i)duckduckbot").expect("valid regex: duckduckbot")],
                 ip_ranges: vec![
-                    "20.191.45.212/32".parse().expect("valid CIDR: 20.191.45.212/32"),
-                    "40.88.21.235/32".parse().expect("valid CIDR: 40.88.21.235/32"),
-                    "40.76.173.151/32".parse().expect("valid CIDR: 40.76.173.151/32"),
-                    "40.76.163.7/32".parse().expect("valid CIDR: 40.76.163.7/32"),
-                    "20.185.79.47/32".parse().expect("valid CIDR: 20.185.79.47/32"),
+                    "20.191.45.212/32"
+                        .parse()
+                        .expect("valid CIDR: 20.191.45.212/32"),
+                    "40.88.21.235/32"
+                        .parse()
+                        .expect("valid CIDR: 40.88.21.235/32"),
+                    "40.76.173.151/32"
+                        .parse()
+                        .expect("valid CIDR: 40.76.173.151/32"),
+                    "40.76.163.7/32"
+                        .parse()
+                        .expect("valid CIDR: 40.76.163.7/32"),
+                    "20.185.79.47/32"
+                        .parse()
+                        .expect("valid CIDR: 20.185.79.47/32"),
                 ],
                 verify_dns: None, // DuckDuckBot doesn't have reverse DNS
                 is_good: true,
@@ -254,7 +280,8 @@ impl KnownBotDatabase {
                 name: "Facebookbot".to_string(),
                 category: BotCategory::SocialMedia,
                 ua_patterns: vec![
-                    Regex::new(r"(?i)facebookexternalhit").expect("valid regex: facebookexternalhit"),
+                    Regex::new(r"(?i)facebookexternalhit")
+                        .expect("valid regex: facebookexternalhit"),
                     Regex::new(r"(?i)facebot").expect("valid regex: facebot"),
                 ],
                 ip_ranges: vec![],
@@ -264,9 +291,7 @@ impl KnownBotDatabase {
             CompiledBot {
                 name: "Twitterbot".to_string(),
                 category: BotCategory::SocialMedia,
-                ua_patterns: vec![
-                    Regex::new(r"(?i)twitterbot").expect("valid regex: twitterbot"),
-                ],
+                ua_patterns: vec![Regex::new(r"(?i)twitterbot").expect("valid regex: twitterbot")],
                 ip_ranges: vec![],
                 verify_dns: None,
                 is_good: true,
@@ -274,9 +299,7 @@ impl KnownBotDatabase {
             CompiledBot {
                 name: "UptimeRobot".to_string(),
                 category: BotCategory::Monitoring,
-                ua_patterns: vec![
-                    Regex::new(r"(?i)uptimerobot").expect("valid regex: uptimerobot"),
-                ],
+                ua_patterns: vec![Regex::new(r"(?i)uptimerobot").expect("valid regex: uptimerobot")],
                 ip_ranges: vec![],
                 verify_dns: None,
                 is_good: true,
@@ -284,9 +307,7 @@ impl KnownBotDatabase {
             CompiledBot {
                 name: "Pingdom".to_string(),
                 category: BotCategory::Monitoring,
-                ua_patterns: vec![
-                    Regex::new(r"(?i)pingdom").expect("valid regex: pingdom"),
-                ],
+                ua_patterns: vec![Regex::new(r"(?i)pingdom").expect("valid regex: pingdom")],
                 ip_ranges: vec![],
                 verify_dns: None,
                 is_good: true,
@@ -357,13 +378,17 @@ impl KnownBotDatabase {
                 };
 
                 // Cache the result
-                self.verification_cache.insert(cache_key, result.clone()).await;
+                self.verification_cache
+                    .insert(cache_key, result.clone())
+                    .await;
                 return result;
             }
         }
 
         let result = VerificationResult::Unknown;
-        self.verification_cache.insert(cache_key, result.clone()).await;
+        self.verification_cache
+            .insert(cache_key, result.clone())
+            .await;
         result
     }
 
@@ -385,7 +410,10 @@ impl KnownBotDatabase {
                         // Forward verify: lookup the hostname and check if it resolves back to the IP
                         if let Ok(ips) = self.resolver.lookup_ip(&host).await {
                             if ips.iter().any(|resolved_ip| resolved_ip == ip) {
-                                return VerificationResult::Verified(bot.name.clone(), bot.category.clone());
+                                return VerificationResult::Verified(
+                                    bot.name.clone(),
+                                    bot.category.clone(),
+                                );
                             }
                         }
                     }
@@ -434,17 +462,16 @@ impl Detector for KnownBotDatabase {
 
         // Check known bots
         match self.check(ctx).await {
-            VerificationResult::Verified(name, _category) => {
-                DetectorResult::new(0)
-                    .with_reason(format!("verified_bot_{}", name.to_lowercase().replace(' ', "_")))
-                    .with_metadata("verified_bot", name)
-                    .with_metadata("matched_type", "verified_good".to_string())
-            }
-            VerificationResult::Fake(reason) => {
-                DetectorResult::new(100)
-                    .with_reason(reason)
-                    .with_metadata("matched_type", "fake_bot".to_string())
-            }
+            VerificationResult::Verified(name, _category) => DetectorResult::new(0)
+                .with_reason(format!(
+                    "verified_bot_{}",
+                    name.to_lowercase().replace(' ', "_")
+                ))
+                .with_metadata("verified_bot", name)
+                .with_metadata("matched_type", "verified_good".to_string()),
+            VerificationResult::Fake(reason) => DetectorResult::new(100)
+                .with_reason(reason)
+                .with_metadata("matched_type", "fake_bot".to_string()),
             VerificationResult::Unknown => {
                 DetectorResult::new(50) // Neutral - not in our database
                     .with_metadata("matched_type", "unknown".to_string())

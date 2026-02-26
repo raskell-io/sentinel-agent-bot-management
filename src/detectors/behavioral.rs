@@ -87,8 +87,14 @@ impl SessionData {
             return 0.0;
         }
 
-        let first = self.request_times.front().expect("request_times has >= 2 elements");
-        let last = self.request_times.back().expect("request_times has >= 2 elements");
+        let first = self
+            .request_times
+            .front()
+            .expect("request_times has >= 2 elements");
+        let last = self
+            .request_times
+            .back()
+            .expect("request_times has >= 2 elements");
         let duration = last.duration_since(*first);
 
         if duration.as_secs() == 0 {
@@ -118,9 +124,8 @@ impl SessionData {
             return Some(0.0); // All requests at same time = very regular
         }
 
-        let variance = intervals.iter()
-            .map(|x| (x - mean).powi(2))
-            .sum::<f64>() / intervals.len() as f64;
+        let variance =
+            intervals.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / intervals.len() as f64;
         let std_dev = variance.sqrt();
 
         // Coefficient of variation (CV)
@@ -180,12 +185,16 @@ impl BehavioralAnalyzer {
 
         // Cleanup every 1000 requests
         if count.is_multiple_of(1000) {
-            self.sessions.retain(|_, v| !v.is_expired(self.session_timeout));
+            self.sessions
+                .retain(|_, v| !v.is_expired(self.session_timeout));
         }
     }
 
     /// Get or create a session.
-    fn get_or_create_session(&self, key: SessionKey) -> dashmap::mapref::one::RefMut<'_, SessionKey, SessionData> {
+    fn get_or_create_session(
+        &self,
+        key: SessionKey,
+    ) -> dashmap::mapref::one::RefMut<'_, SessionKey, SessionData> {
         // Check if we need to evict
         if self.sessions.len() >= self.max_sessions {
             // Remove a random session (simple eviction)
@@ -196,21 +205,15 @@ impl BehavioralAnalyzer {
             }
         }
 
-        self.sessions.entry(key).or_insert_with(|| {
-            SessionData::new(self.max_request_history, self.max_paths)
-        })
+        self.sessions
+            .entry(key)
+            .or_insert_with(|| SessionData::new(self.max_request_history, self.max_paths))
     }
 }
 
 impl Default for BehavioralAnalyzer {
     fn default() -> Self {
-        Self::new(
-            100_000,
-            Duration::from_secs(3600),
-            60,
-            5,
-            100,
-        )
+        Self::new(100_000, Duration::from_secs(3600), 60, 5, 100)
     }
 }
 
@@ -319,7 +322,10 @@ mod tests {
         for i in 0..3 {
             let ctx = make_ctx("192.168.1.1", &format!("/page{}", i));
             let result = analyzer.analyze(&ctx).await;
-            assert_eq!(result.score, 50, "Should return neutral score until enough data");
+            assert_eq!(
+                result.score, 50,
+                "Should return neutral score until enough data"
+            );
         }
     }
 

@@ -3,20 +3,19 @@
 //! These tests verify the complete functionality of the bot management agent,
 //! including configuration parsing, bot scoring, challenge tokens, and detectors.
 
-use zentinel_agent_bot_management::{
-    BotManagementAgent, BotManagementConfig, BotCategory, BotScore, SignalBreakdown,
-};
+use std::collections::HashMap;
+use zentinel_agent_bot_management::challenge::ChallengeManager;
 use zentinel_agent_bot_management::config::{
     AllowListConfig, BehavioralConfig, CacheConfig, ChallengeConfig, ChallengeType,
     DetectionConfig, PerformanceConfig, SignalWeights, ThresholdConfig,
 };
-use zentinel_agent_bot_management::score::ScoreCalculator;
-use zentinel_agent_bot_management::challenge::ChallengeManager;
 use zentinel_agent_bot_management::detectors::{
-    DetectionContext, DetectorResult, Detector,
-    UserAgentAnalyzer, HeaderAnalyzer,
+    DetectionContext, Detector, DetectorResult, HeaderAnalyzer, UserAgentAnalyzer,
 };
-use std::collections::HashMap;
+use zentinel_agent_bot_management::score::ScoreCalculator;
+use zentinel_agent_bot_management::{
+    BotCategory, BotManagementAgent, BotManagementConfig, BotScore, SignalBreakdown,
+};
 
 // =============================================================================
 // Configuration Tests
@@ -244,7 +243,10 @@ fn test_bot_score_verified_bad_bot() {
     assert_eq!(score.confidence, 1.0);
     assert!(score.is_verified);
     assert_eq!(score.category, BotCategory::Malicious);
-    assert!(score.signals.reasons.contains(&"Fake Googlebot - IP not from Google".to_string()));
+    assert!(score
+        .signals
+        .reasons
+        .contains(&"Fake Googlebot - IP not from Google".to_string()));
 }
 
 #[test]
@@ -266,8 +268,7 @@ fn test_bot_score_with_signals() {
         reasons: vec!["test_reason".to_string()],
     };
 
-    let score = BotScore::new(30, 0.6, BotCategory::Unknown)
-        .with_signals(signals);
+    let score = BotScore::new(30, 0.6, BotCategory::Unknown).with_signals(signals);
 
     assert_eq!(score.signals.header_score, Some(20));
     assert_eq!(score.signals.user_agent_score, Some(30));
@@ -276,10 +277,12 @@ fn test_bot_score_with_signals() {
 
 #[test]
 fn test_bot_score_with_reason() {
-    let score = BotScore::new(50, 0.5, BotCategory::Unknown)
-        .with_reason("suspicious_pattern");
+    let score = BotScore::new(50, 0.5, BotCategory::Unknown).with_reason("suspicious_pattern");
 
-    assert!(score.signals.reasons.contains(&"suspicious_pattern".to_string()));
+    assert!(score
+        .signals
+        .reasons
+        .contains(&"suspicious_pattern".to_string()));
 }
 
 // =============================================================================
@@ -504,7 +507,10 @@ fn test_challenge_manager_challenge_params_javascript() {
     assert!(params.contains_key("challenge_url"));
     assert!(params.contains_key("token"));
     assert!(params.contains_key("cookie_name"));
-    assert_eq!(params.get("challenge_url"), Some(&"/challenge.js".to_string()));
+    assert_eq!(
+        params.get("challenge_url"),
+        Some(&"/challenge.js".to_string())
+    );
 }
 
 #[test]
@@ -633,8 +639,14 @@ fn test_detector_result_with_metadata() {
         .with_metadata("user_agent", "curl/7.88")
         .with_metadata("detected_bot", "true");
 
-    assert_eq!(result.metadata.get("user_agent"), Some(&"curl/7.88".to_string()));
-    assert_eq!(result.metadata.get("detected_bot"), Some(&"true".to_string()));
+    assert_eq!(
+        result.metadata.get("user_agent"),
+        Some(&"curl/7.88".to_string())
+    );
+    assert_eq!(
+        result.metadata.get("detected_bot"),
+        Some(&"true".to_string())
+    );
 }
 
 // =============================================================================
@@ -650,7 +662,11 @@ async fn test_ua_analyzer_normal_browser() {
     );
     let result = analyzer.analyze(&ctx).await;
 
-    assert!(result.score < 30, "Normal browser should have low score: {}", result.score);
+    assert!(
+        result.score < 30,
+        "Normal browser should have low score: {}",
+        result.score
+    );
 }
 
 #[tokio::test]
@@ -669,7 +685,10 @@ async fn test_ua_analyzer_python_requests() {
     let ctx = make_detection_context("python-requests/2.28.0", "192.168.1.1");
     let result = analyzer.analyze(&ctx).await;
 
-    assert!(result.score >= 40, "Python requests should have moderate score");
+    assert!(
+        result.score >= 40,
+        "Python requests should have moderate score"
+    );
 }
 
 #[tokio::test]
@@ -678,7 +697,10 @@ async fn test_ua_analyzer_security_scanner() {
     let ctx = make_detection_context("sqlmap/1.0", "192.168.1.1");
     let result = analyzer.analyze(&ctx).await;
 
-    assert!(result.score >= 80, "Security scanner should have high score");
+    assert!(
+        result.score >= 80,
+        "Security scanner should have high score"
+    );
 }
 
 #[tokio::test]
@@ -690,7 +712,10 @@ async fn test_ua_analyzer_headless_browser() {
     );
     let result = analyzer.analyze(&ctx).await;
 
-    assert!(result.score >= 50, "Headless browser should have moderate-high score");
+    assert!(
+        result.score >= 50,
+        "Headless browser should have moderate-high score"
+    );
     assert!(result.reasons.iter().any(|r| r.contains("headless")));
 }
 
@@ -759,18 +784,23 @@ async fn test_header_analyzer_normal_browser() {
     ]);
     let result = analyzer.analyze(&ctx).await;
 
-    assert!(result.score < 40, "Normal browser headers should have low score: {}", result.score);
+    assert!(
+        result.score < 40,
+        "Normal browser headers should have low score: {}",
+        result.score
+    );
 }
 
 #[tokio::test]
 async fn test_header_analyzer_minimal_headers() {
     let analyzer = HeaderAnalyzer::new();
-    let ctx = make_context_with_headers(vec![
-        ("user-agent", "Bot/1.0"),
-    ]);
+    let ctx = make_context_with_headers(vec![("user-agent", "Bot/1.0")]);
     let result = analyzer.analyze(&ctx).await;
 
-    assert!(result.score >= 30, "Minimal headers should have moderate score");
+    assert!(
+        result.score >= 30,
+        "Minimal headers should have moderate score"
+    );
 }
 
 // =============================================================================

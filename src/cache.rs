@@ -64,11 +64,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_cache_basic() {
-        let cache: DetectionCache<String, i32> = DetectionCache::new(
-            "test",
-            100,
-            Duration::from_secs(60),
-        );
+        let cache: DetectionCache<String, i32> =
+            DetectionCache::new("test", 100, Duration::from_secs(60));
 
         cache.insert("key1".to_string(), 42).await;
 

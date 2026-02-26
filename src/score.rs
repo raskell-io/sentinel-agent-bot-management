@@ -34,9 +34,7 @@ impl BotCategory {
     pub fn is_good_bot(&self) -> bool {
         matches!(
             self,
-            BotCategory::SearchEngine
-                | BotCategory::SocialMedia
-                | BotCategory::Monitoring
+            BotCategory::SearchEngine | BotCategory::SocialMedia | BotCategory::Monitoring
         )
     }
 
@@ -61,7 +59,6 @@ impl BotCategory {
         }
     }
 }
-
 
 /// Individual signal scores from each detector.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -270,13 +267,22 @@ impl ScoreCalculator {
         // Check reasons for specific categories
         for reason in &signals.reasons {
             let reason_lower = reason.to_lowercase();
-            if reason_lower.contains("headless") || reason_lower.contains("puppeteer") || reason_lower.contains("selenium") {
+            if reason_lower.contains("headless")
+                || reason_lower.contains("puppeteer")
+                || reason_lower.contains("selenium")
+            {
                 return BotCategory::HeadlessBrowser;
             }
-            if reason_lower.contains("curl") || reason_lower.contains("wget") || reason_lower.contains("python") {
+            if reason_lower.contains("curl")
+                || reason_lower.contains("wget")
+                || reason_lower.contains("python")
+            {
                 return BotCategory::Automation;
             }
-            if reason_lower.contains("scanner") || reason_lower.contains("sqlmap") || reason_lower.contains("nikto") {
+            if reason_lower.contains("scanner")
+                || reason_lower.contains("sqlmap")
+                || reason_lower.contains("nikto")
+            {
                 return BotCategory::SecurityScanner;
             }
         }

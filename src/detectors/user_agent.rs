@@ -19,13 +19,11 @@ static BOT_KEYWORDS: LazyLock<Vec<(&'static str, u8)>> = LazyLock::new(|| {
         ("crawler", 40),
         ("spider", 40),
         ("scraper", 50),
-
         // Command-line tools (moderate score)
         ("curl", 50),
         ("wget", 50),
         ("httpie", 50),
         ("postman", 30),
-
         // Programming libraries (moderate score)
         ("python-requests", 45),
         ("python-urllib", 45),
@@ -34,7 +32,6 @@ static BOT_KEYWORDS: LazyLock<Vec<(&'static str, u8)>> = LazyLock::new(|| {
         ("axios", 35),
         ("node-fetch", 40),
         ("okhttp", 35),
-
         // Security scanners (high score)
         ("sqlmap", 90),
         ("nikto", 90),
@@ -45,14 +42,12 @@ static BOT_KEYWORDS: LazyLock<Vec<(&'static str, u8)>> = LazyLock::new(|| {
         ("gobuster", 85),
         ("dirbuster", 85),
         ("nuclei", 85),
-
         // Headless browsers (moderate-high score)
         ("headless", 60),
         ("phantomjs", 70),
         ("puppeteer", 60),
         ("playwright", 60),
         ("selenium", 60),
-
         // Known bad bots
         ("ahrefsbot", 45),
         ("semrushbot", 45),
@@ -66,11 +61,23 @@ static BOT_KEYWORDS: LazyLock<Vec<(&'static str, u8)>> = LazyLock::new(|| {
 static OUTDATED_PATTERNS: LazyLock<Vec<(Regex, &'static str, u8)>> = LazyLock::new(|| {
     vec![
         // Very old Chrome versions (Chrome 90+ is current as of 2024)
-        (Regex::new(r"Chrome/([1-7][0-9])\.").expect("valid regex: outdated Chrome version"), "outdated_chrome", 30),
+        (
+            Regex::new(r"Chrome/([1-7][0-9])\.").expect("valid regex: outdated Chrome version"),
+            "outdated_chrome",
+            30,
+        ),
         // Very old Firefox versions
-        (Regex::new(r"Firefox/([1-7][0-9])\.").expect("valid regex: outdated Firefox version"), "outdated_firefox", 30),
+        (
+            Regex::new(r"Firefox/([1-7][0-9])\.").expect("valid regex: outdated Firefox version"),
+            "outdated_firefox",
+            30,
+        ),
         // IE is always suspicious in 2024+
-        (Regex::new(r"MSIE|Trident").expect("valid regex: IE detection"), "internet_explorer", 40),
+        (
+            Regex::new(r"MSIE|Trident").expect("valid regex: IE detection"),
+            "internet_explorer",
+            40,
+        ),
     ]
 });
 
@@ -78,13 +85,32 @@ static OUTDATED_PATTERNS: LazyLock<Vec<(Regex, &'static str, u8)>> = LazyLock::n
 static IMPOSSIBLE_PATTERNS: LazyLock<Vec<(Regex, &'static str, u8)>> = LazyLock::new(|| {
     vec![
         // Android + Windows
-        (Regex::new(r"(?i)android.*windows|windows.*android").expect("valid regex: android+windows"), "android_windows", 70),
+        (
+            Regex::new(r"(?i)android.*windows|windows.*android")
+                .expect("valid regex: android+windows"),
+            "android_windows",
+            70,
+        ),
         // iPhone + Android
-        (Regex::new(r"(?i)iphone.*android|android.*iphone").expect("valid regex: iphone+android"), "iphone_android", 70),
+        (
+            Regex::new(r"(?i)iphone.*android|android.*iphone")
+                .expect("valid regex: iphone+android"),
+            "iphone_android",
+            70,
+        ),
         // Mac + Windows
-        (Regex::new(r"(?i)macintosh.*windows nt|windows nt.*macintosh").expect("valid regex: mac+windows"), "mac_windows", 70),
+        (
+            Regex::new(r"(?i)macintosh.*windows nt|windows nt.*macintosh")
+                .expect("valid regex: mac+windows"),
+            "mac_windows",
+            70,
+        ),
         // Too many browser engines
-        (Regex::new(r"Chrome.*Firefox.*Safari.*Edge").expect("valid regex: too many engines"), "too_many_engines", 60),
+        (
+            Regex::new(r"Chrome.*Firefox.*Safari.*Edge").expect("valid regex: too many engines"),
+            "too_many_engines",
+            60,
+        ),
     ]
 });
 
@@ -164,7 +190,9 @@ impl UserAgentAnalyzer {
         let idx = ua.find(prefix)?;
         let start = idx + prefix.len();
         let rest = &ua[start..];
-        let end = rest.find(|c: char| !c.is_ascii_digit()).unwrap_or(rest.len());
+        let end = rest
+            .find(|c: char| !c.is_ascii_digit())
+            .unwrap_or(rest.len());
         rest[..end].parse().ok()
     }
 
@@ -197,15 +225,13 @@ impl Detector for UserAgentAnalyzer {
             Some(ua) => ua,
             None => {
                 // No User-Agent is very suspicious
-                return DetectorResult::new(80)
-                    .with_reason("missing_user_agent".to_string());
+                return DetectorResult::new(80).with_reason("missing_user_agent".to_string());
             }
         };
 
         // Empty User-Agent is suspicious
         if ua.trim().is_empty() {
-            return DetectorResult::new(75)
-                .with_reason("empty_user_agent".to_string());
+            return DetectorResult::new(75).with_reason("empty_user_agent".to_string());
         }
 
         let mut total_score = 0u8;
@@ -268,7 +294,11 @@ mod tests {
         let analyzer = UserAgentAnalyzer::new();
         let ctx = make_ctx("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
         let result = analyzer.analyze(&ctx).await;
-        assert!(result.score < 30, "Normal browser should have low score: {}", result.score);
+        assert!(
+            result.score < 30,
+            "Normal browser should have low score: {}",
+            result.score
+        );
     }
 
     #[tokio::test]
@@ -285,7 +315,10 @@ mod tests {
         let analyzer = UserAgentAnalyzer::new();
         let ctx = make_ctx("sqlmap/1.0");
         let result = analyzer.analyze(&ctx).await;
-        assert!(result.score >= 80, "Security scanner should have high score");
+        assert!(
+            result.score >= 80,
+            "Security scanner should have high score"
+        );
     }
 
     #[tokio::test]
@@ -307,13 +340,25 @@ mod tests {
         let analyzer = UserAgentAnalyzer::new();
         let ctx = make_ctx("Mozilla/5.0 (Windows NT; Android 10) Chrome/120");
         let result = analyzer.analyze(&ctx).await;
-        assert!(result.score >= 50, "Impossible UA should have moderate-high score");
+        assert!(
+            result.score >= 50,
+            "Impossible UA should have moderate-high score"
+        );
     }
 
     #[tokio::test]
     async fn test_version_extraction() {
-        assert_eq!(UserAgentAnalyzer::extract_version("Chrome/120.0.0.0", "Chrome/"), Some(120));
-        assert_eq!(UserAgentAnalyzer::extract_version("Firefox/115.0", "Firefox/"), Some(115));
-        assert_eq!(UserAgentAnalyzer::extract_version("Safari/537.36", "Chrome/"), None);
+        assert_eq!(
+            UserAgentAnalyzer::extract_version("Chrome/120.0.0.0", "Chrome/"),
+            Some(120)
+        );
+        assert_eq!(
+            UserAgentAnalyzer::extract_version("Firefox/115.0", "Firefox/"),
+            Some(115)
+        );
+        assert_eq!(
+            UserAgentAnalyzer::extract_version("Safari/537.36", "Chrome/"),
+            None
+        );
     }
 }

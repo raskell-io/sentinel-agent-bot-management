@@ -4,15 +4,19 @@
 
 use anyhow::Result;
 use clap::Parser;
-use zentinel_agent_bot_management::{BotManagementAgent, BotManagementConfig};
-use zentinel_agent_protocol::v2::{GrpcAgentServerV2, UdsAgentServerV2};
 use std::path::PathBuf;
 use tracing::{info, Level};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
+use zentinel_agent_bot_management::{BotManagementAgent, BotManagementConfig};
+use zentinel_agent_protocol::v2::{GrpcAgentServerV2, UdsAgentServerV2};
 
 #[derive(Parser, Debug)]
 #[command(name = "zentinel-agent-bot-management")]
-#[command(author, version, about = "Bot detection and management agent for Zentinel")]
+#[command(
+    author,
+    version,
+    about = "Bot detection and management agent for Zentinel"
+)]
 struct Args {
     /// Unix socket path for the agent server (v2 UDS transport)
     #[arg(short, long, default_value = "/tmp/zentinel-bot-management.sock")]
@@ -54,8 +58,7 @@ fn init_logging(json: bool, level: &str) {
         _ => Level::INFO,
     };
 
-    let env_filter = EnvFilter::from_default_env()
-        .add_directive(level.into());
+    let env_filter = EnvFilter::from_default_env().add_directive(level.into());
 
     if json {
         tracing_subscriber::registry()
@@ -80,7 +83,10 @@ async fn main() -> Result<()> {
     // Load configuration
     let config = if let Some(config_path) = &args.config {
         let content = std::fs::read_to_string(config_path)?;
-        if config_path.extension().is_some_and(|e| e == "yaml" || e == "yml") {
+        if config_path
+            .extension()
+            .is_some_and(|e| e == "yaml" || e == "yml")
+        {
             serde_yaml::from_str(&content)?
         } else {
             serde_json::from_str(&content)?
@@ -116,4 +122,3 @@ async fn main() -> Result<()> {
 
     Ok(())
 }
-

@@ -8,13 +8,6 @@ use crate::detectors::{
 };
 use crate::score::{BotCategory, BotScore, ScoreCalculator, SignalBreakdown};
 use async_trait::async_trait;
-use zentinel_agent_protocol::v2::{
-    AgentCapabilities, AgentFeatures, AgentHandlerV2, DrainReason, HealthStatus, MetricsReport,
-    ShutdownReason, CounterMetric, GaugeMetric,
-};
-use zentinel_agent_protocol::{
-    AgentResponse, Decision, EventType, RequestHeadersEvent,
-};
 use std::collections::HashMap;
 use std::net::IpAddr;
 use std::path::Path;
@@ -22,6 +15,11 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{debug, info, warn};
+use zentinel_agent_protocol::v2::{
+    AgentCapabilities, AgentFeatures, AgentHandlerV2, CounterMetric, DrainReason, GaugeMetric,
+    HealthStatus, MetricsReport, ShutdownReason,
+};
+use zentinel_agent_protocol::{AgentResponse, Decision, EventType, RequestHeadersEvent};
 
 /// Bot Management Agent for Zentinel.
 pub struct BotManagementAgent {
@@ -117,7 +115,8 @@ impl BotManagementAgent {
     /// Create with default configuration.
     pub async fn with_defaults() -> anyhow::Result<Self> {
         let config = BotManagementConfig::default();
-        let known_bot_db = KnownBotDatabase::with_defaults(config.allow_list.verify_identity).await?;
+        let known_bot_db =
+            KnownBotDatabase::with_defaults(config.allow_list.verify_identity).await?;
 
         let behavioral_analyzer = BehavioralAnalyzer::new(
             config.behavioral.max_sessions,
@@ -354,10 +353,10 @@ impl BotManagementAgent {
         // Add audit metadata
         response.audit.tags.push("bot-management".to_string());
         response.audit.confidence = Some(score.confidence);
-        response.audit.custom.insert(
-            "bot_score".to_string(),
-            serde_json::json!(score.score),
-        );
+        response
+            .audit
+            .custom
+            .insert("bot_score".to_string(), serde_json::json!(score.score));
         response.audit.custom.insert(
             "bot_category".to_string(),
             serde_json::json!(score.category.as_str()),
@@ -373,19 +372,23 @@ impl BotManagementAgent {
 impl AgentHandlerV2 for BotManagementAgent {
     /// Return agent capabilities for v2 protocol.
     fn capabilities(&self) -> AgentCapabilities {
-        AgentCapabilities::new("bot-management", "Bot Management Agent", env!("CARGO_PKG_VERSION"))
-            .with_event(EventType::RequestHeaders)
-            .with_features(AgentFeatures {
-                streaming_body: false,
-                websocket: false,
-                guardrails: false,
-                config_push: true,
-                metrics_export: true,
-                concurrent_requests: 100,
-                cancellation: true,
-                flow_control: false,
-                health_reporting: true,
-            })
+        AgentCapabilities::new(
+            "bot-management",
+            "Bot Management Agent",
+            env!("CARGO_PKG_VERSION"),
+        )
+        .with_event(EventType::RequestHeaders)
+        .with_features(AgentFeatures {
+            streaming_body: false,
+            websocket: false,
+            guardrails: false,
+            config_push: true,
+            metrics_export: true,
+            concurrent_requests: 100,
+            cancellation: true,
+            flow_control: false,
+            health_reporting: true,
+        })
     }
 
     /// Handle request headers event - main bot detection logic.
@@ -400,10 +403,12 @@ impl AgentHandlerV2 for BotManagementAgent {
             );
             self.requests_allowed.fetch_add(1, Ordering::Relaxed);
             let mut response = AgentResponse::default_allow();
-            response.response_headers.push(zentinel_agent_protocol::HeaderOp::Set {
-                name: "X-Bot-Challenge".to_string(),
-                value: "passed".to_string(),
-            });
+            response
+                .response_headers
+                .push(zentinel_agent_protocol::HeaderOp::Set {
+                    name: "X-Bot-Challenge".to_string(),
+                    value: "passed".to_string(),
+                });
             response.audit.tags.push("challenge_passed".to_string());
             return response;
         }
@@ -568,11 +573,7 @@ mod tests {
     #[tokio::test]
     async fn test_detection_context_building() {
         let agent = BotManagementAgent::with_defaults().await.unwrap();
-        let event = make_request_event(
-            "Mozilla/5.0 Chrome/120",
-            "192.168.1.100",
-            "/test",
-        );
+        let event = make_request_event("Mozilla/5.0 Chrome/120", "192.168.1.100", "/test");
         let ctx = agent.build_context(&event);
 
         assert_eq!(ctx.client_ip.to_string(), "192.168.1.100");

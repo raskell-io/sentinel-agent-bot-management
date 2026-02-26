@@ -31,7 +31,6 @@ pub struct BotManagementConfig {
     pub debug_headers: bool,
 }
 
-
 /// Score thresholds for bot decisions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -296,6 +295,9 @@ mod tests {
         let config = BotManagementConfig::default();
         let json = serde_json::to_string(&config).unwrap();
         let parsed: BotManagementConfig = serde_json::from_str(&json).unwrap();
-        assert_eq!(parsed.thresholds.allow_threshold, config.thresholds.allow_threshold);
+        assert_eq!(
+            parsed.thresholds.allow_threshold,
+            config.thresholds.allow_threshold
+        );
     }
 }

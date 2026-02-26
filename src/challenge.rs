@@ -151,8 +151,8 @@ impl ChallengeManager {
 
     /// Sign data with HMAC-SHA256.
     fn sign(&self, data: &str) -> String {
-        let mut mac = HmacSha256::new_from_slice(&self.secret)
-            .expect("HMAC can take key of any size");
+        let mut mac =
+            HmacSha256::new_from_slice(&self.secret).expect("HMAC can take key of any size");
         mac.update(data.as_bytes());
         hex::encode(mac.finalize().into_bytes())
     }
@@ -209,8 +209,14 @@ mod tests {
     fn test_invalid_token() {
         let manager = ChallengeManager::default();
 
-        assert!(!manager.verify_token("invalid"), "Invalid token should fail");
-        assert!(!manager.verify_token("a|b|c"), "Wrong signature should fail");
+        assert!(
+            !manager.verify_token("invalid"),
+            "Invalid token should fail"
+        );
+        assert!(
+            !manager.verify_token("a|b|c"),
+            "Wrong signature should fail"
+        );
         assert!(!manager.verify_token(""), "Empty token should fail");
     }
 
