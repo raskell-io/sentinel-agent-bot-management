@@ -80,18 +80,30 @@ The agent exports counter and gauge metrics via the v2 agent protocol:
 
 ## Installation
 
+### Using Bundle (Recommended)
+
+```bash
+# Install just this agent
+zentinel bundle install bot-management
+
+# Or install all bundled agents
+zentinel bundle install
+```
+
+The bundle command downloads the correct binary for your platform and places it in the standard location. See the [bundle documentation](https://zentinelproxy.io/docs/deployment/bundle/) for details.
+
+### Using Cargo
+
+```bash
+cargo install zentinel-agent-bot-management
+```
+
 ### From Source
 
 ```bash
 git clone https://github.com/zentinelproxy/zentinel-agent-bot-management
 cd zentinel-agent-bot-management
 cargo build --release
-```
-
-### Binary
-
-```bash
-./target/release/zentinel-bot-management-agent --socket /var/run/zentinel/bot-management.sock
 ```
 
 ### Docker

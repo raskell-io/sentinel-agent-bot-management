@@ -3634,8 +3634,7 @@ dependencies = [
 
 [[package]]
 name = "zentinel-agent-protocol"
-version = "0.5.0"
-source = "git+https://github.com/zentinelproxy/zentinel.git#facae87752c6e4a31008fab3274cad1313d65522"
+version = "0.5.9"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3670,8 +3669,7 @@ dependencies = [
 
 [[package]]
 name = "zentinel-common"
-version = "0.5.0"
-source = "git+https://github.com/zentinelproxy/zentinel.git#facae87752c6e4a31008fab3274cad1313d65522"
+version = "0.5.9"
 dependencies = [
  "anyhow",
  "chrono",
