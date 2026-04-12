@@ -62,7 +62,7 @@ trust-dns-resolver = "0.23"
 clap = { version = "4", features = ["derive"] }
 
 # gRPC server for v2 protocol
-tonic = "0.11"
+tonic = "0.14"
 
 # Tracing integration
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
