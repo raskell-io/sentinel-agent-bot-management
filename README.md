@@ -90,28 +90,43 @@ zentinel bundle install bot-management
 zentinel bundle install
 ```
 
-The bundle command downloads the correct binary for your platform and places it in the standard location. See the [bundle documentation](https://zentinelproxy.io/docs/deployment/bundle/) for details.
+The bundle command downloads the correct binary for your platform and places it in the standard location. See the [bundle documentation](https://docs.zentinelproxy.io/deployment/bundle/) for details.
 
-### Using Cargo
+### Prebuilt Binaries
+
+Every [GitHub release](https://github.com/zentinelproxy/zentinel-agent-bot-management/releases) ships prebuilt binaries for `linux-x86_64`, `linux-aarch64`, and `darwin-aarch64`:
 
 ```bash
-cargo install zentinel-agent-bot-management
+VERSION=0.4.0
+PLATFORM=linux-x86_64   # or linux-aarch64, darwin-aarch64
+curl -fsSL -o zentinel-bot-management-agent.tar.gz \
+  "https://github.com/zentinelproxy/zentinel-agent-bot-management/releases/download/v${VERSION}/zentinel-bot-management-agent-${VERSION}-${PLATFORM}.tar.gz"
+tar -xzf zentinel-bot-management-agent.tar.gz
+sudo install -m 0755 zentinel-bot-management-agent /usr/local/bin/
 ```
 
 ### From Source
 
+This crate is **not published on crates.io**, so `cargo install zentinel-agent-bot-management` does not work. It also depends on `zentinel-agent-protocol` through a path dependency (`../zentinel/crates/agent-protocol`), which means `cargo install --git` is not supported either, and building from source requires the [zentinel](https://github.com/zentinelproxy/zentinel) repository checked out **next to** this one:
+
 ```bash
+git clone https://github.com/zentinelproxy/zentinel
 git clone https://github.com/zentinelproxy/zentinel-agent-bot-management
 cd zentinel-agent-bot-management
 cargo build --release
+# Binary at target/release/zentinel-bot-management-agent
 ```
 
 ### Docker
 
+There is currently no published container image for this agent. The `Dockerfile` in this repository is a packaging stage that expects a prebuilt binary in the build context. To build an image yourself, place a Linux build of the binary (from a release tarball or a source build) in the repository root, then:
+
 ```bash
+docker build -t zentinel-agent-bot-management --target prebuilt .
+
 docker run --rm \
   -v /var/run/zentinel:/var/run/zentinel \
-  ghcr.io/zentinelproxy/zentinel-agent-bot-management:latest
+  zentinel-agent-bot-management
 ```
 
 ## Quick Start
